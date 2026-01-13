@@ -1,0 +1,38 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+  namespace: cnpg-demo
+spec:
+  instances: 3
+
+  storage:
+    size: 1Gi
+
+  managed:
+    roles:
+    - name: alex
+      comment: Alex Senger
+      login: true
+      superuser: true
+      passwordSecret:
+        name: alex-credentials
+
+  bootstrap:
+    initdb:
+      database: alex
+      owner: alex
+      postInitApplicationSQL:
+      - CREATE TABLE IF NOT EXISTS events (id UUID PRIMARY KEY, extracted_timestamp TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS (uuid_extract_timestamp(id)) STORED);
+
+---
+apiVersion: v1
+metadata:
+  name: alex-credentials
+  namespace: cnpg-demo
+data:
+  username: YWxleAo=  # alex
+  password: YWRtaW4K  # admin
+kind: Secret
+type: kubernetes.io/basic-auth
+
